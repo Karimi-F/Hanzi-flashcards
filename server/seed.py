@@ -8,7 +8,7 @@ from faker import Faker
 
 # Local imports
 from app import app
-from models import db, User, Level, Card, Category
+from models import db, Country, Learner, ProficiencyLevel, Card, Category
 
 if __name__ == '__main__':
     fake = Faker()
@@ -16,38 +16,50 @@ if __name__ == '__main__':
         print("Starting seed...")
         # Seed code goes here!
         print("Clearing old data...")
-        db.session.query(User).delete()
-        db.session.query(Level).delete()
+        db.session.query(Learner).delete()
+        db.session.query(ProficiencyLevel).delete()
         db.session.query(Card).delete()
         db.session.query(Category).delete()
+        db.session.query(Country).delete()
         db.session.commit()
 
-        print("Seeding user...")
-        users = []
-        for _ in range(5):
-             user = User(
-                  name = fake.name(), 
-                  nickname=fake.first_name()
-                  )
-             users.append(user)
-             db.session.add(user)
+        print("Seeding countries...")
+        countries= []
+        country_names = ["China","Japan","Korea","Kenya"]
+        for name in country_names:
+            country = Country(name=name)
+            countries.append(country)
+            db.session.add(country)
 
         db.session.commit()  
-        
-        print("Seeding levels...")
-        levels = []
-        for _ in range (10):
-             level = Level(
-                  name = f"Level {randint(1, 10)}",
-                  description = fake.text(max_nb_chars = 100),
-                  user_id = rc (users).id
-             )  
-             levels.append(level)
-             db.session.add(level)
 
-        db.session.commit()   
+        print("Seeding user...")
+        learners= []
+        for _ in range(5):
+             learner = Learner(
+                  name = fake.name(), 
+                  nickname=fake.first_name(),
+                  country_id=rc(countries).id
+                  )
+             learners.append(learner)
+             db.session.add(learner)
+
+        db.session.commit()  
+
+        print("Seeding categories...")
+        categories=[]
+        category_names = ["Greetings", "Directions", "Numbers", "Colors",  "Common Phrases"]
+        for name in category_names:
+            category = Category(name = name)
+            categories.append(category)
+            db.session.add(category) 
+
+        db.session.commit()  
+      
 
         print ("Seeding cards...")
+        cards = []
+        hsk_levels = ['HSK 1','HSK 2','HSK 3','HSK 4','HSK 5','HSK 6','HSK 7','HSK 8','HSK 9']
         hanzi_samples = [
             {"hanzi": "你好", "pinyin": "nǐ hǎo", "english": "Hello"},
             {"hanzi": "谢谢", "pinyin": "xiè xie", "english": "Thank you"},
@@ -61,20 +73,28 @@ if __name__ == '__main__':
                   hanzi=hanzi['hanzi'],
                   pinyin=hanzi['pinyin'],
                   english_translation=hanzi['english'],
-                  level_id = rc (levels).id
+                  hsk_level=rc(hsk_levels),
+                  category_id = rc (categories).id
              )
              db.session.add(card)
+             cards.append(card)
 
         db.session.commit()  
 
-        print("Seeding categories...")
-        categories=[]
-        category_names = ["Beginner","Intermediate", "Advanced", "Greetings", "Directions"]
-        for name in category_names:
-            category = Category(name = name, description=fake.text(max_nb_chars=100))
-            categories.append(category)
-            db.session.add(category) 
+          
+        print("Seeding proficiency levels...")
+        proficiency_levels = ["Beginner", "Intermediate", "Advanced"]
+        for level in proficiency_levels:
+             proficiency = ProficiencyLevel(
+                  name =level,
+                  description = fake.text(max_nb_chars = 100),
+                  learner_id = rc (learners).id,
+                  card_id = rc(cards).id
+             )  
+             db.session.add(proficiency)
 
-        db.session.commit()            
+        db.session.commit()   
+
+                 
 
         print("Seed completed!")

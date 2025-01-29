@@ -4,36 +4,40 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from config import db
 
 # Models go here!
-class User(db.Model, SerializerMixin):
-    __tablename__ = 'users'
+class Country(db.Model, SerializerMixin):
+    __tablename__ = 'countries'
+
+    id = db.Column(db.Integer, primary_key = True)
+    name = db.Column(db.String, nullable = False)
+
+    # # One-to-many relationship with learners 
+    learners = db.relationship('Learner', back_populates = 'country', cascade = 'all, delete-orphan')
+
+    serialize_rules = ("-learners.country",)
+
+    def __repr__(self):
+        return f'<Country: {self.id}, {self.name}>'
+    
+class Learner(db.Model, SerializerMixin):
+    __tablename__ = 'learners'
 
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String, nullable = False)
     nickname = db.Column(db.String, nullable = True)
+    country_id = db.Column(db.Integer, db.ForeignKey('countries.id'))
 
-    # One-to-many relationship with levels 
-    levels = db.relationship('Level', back_populates = 'user', cascade = 'all, delete-orphan')
+    proficiencylevels = db.relationship('ProficiencyLevel', back_populates = 'learner', cascade ='all, delete-orphan')
 
-    def __repr__(self):
-        return f'<User {self.id}, {self.name}, {self.nickname}>'
+    cards = association_proxy('proficiencylevels', 'card')
 
-class Level(db.Model):
-    __tablename__ = 'levels'
+    country = db.relationship('Country', back_populates = 'learners')
 
-    id = db.Column(db.Integer, primary_key = True)
-    name = db.Column(db.String, nullable = False)
-    description = db.Column(db.String, nullable = True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-
-    # Relationship with user
-    user = db.relationship("User", back_populates = 'levels')
-
-    # One-to-many relationship with cards
-    cards = db.relationship('Card', back_populates = 'level', cascade = 'all, delete-orphan')
+    serialize_rules = ("-country.learners", "-proficiencylevels.learner")
 
     def __repr__(self):
-        return f'<Level {self.id}, with name {self.name} and description {self.description}, {self.user_id}'
+        return f'<Learner {self.id}, {self.name}, {self.nickname} from country with id {self.country_id}>'
     
+
 class Card(db.Model):
     __tablename__ = 'cards'
 
@@ -41,51 +45,48 @@ class Card(db.Model):
     hanzi = db.Column(db.String, nullable = False)
     pinyin =  db.Column(db.String, nullable = False)
     english_translation = db.Column(db.String, nullable = False)
-    level_id = db.Column(db.Integer, db.ForeignKey ('levels.id'))
+    hsk_level = db.Column(db.String, nullable = False)
+    category_id = db.Column(db.Integer, db.ForeignKey("categories.id", ondelete="CASCADE"))
 
-    # One-to-many relationship with levels
-    level = db.relationship('Level', back_populates = 'cards')
+    proficiencylevels = db.relationship('ProficiencyLevel', back_populates = 'card', cascade='all, delete-orphan')
 
-    # Many-to-many relationship with categories
-    card_categories = db.relationship("CardCategory", back_populates = "card", cascade = "all, delete-orphan")
+    category = db.relationship('Category', back_populates='cards')
 
-    categories = association_proxy("card_categories", "category")
-
-    serialize_rules = ("-card_categories.card",)
+    serialize_rules = ("-proficiencylevels.card", "-category.cards")
 
     def __repr__(self):
-        return f'<Card with id{self.id}, Hanzi{self.hanzi}, Pinyin {self.pinyin}, English Translation {self.english_translation} is in level with id {self.level_id}>'
-    
-class Category(db.Model):
+        return f'<Card with id{self.id}, Hanzi{self.hanzi}, Pinyin {self.pinyin}, English Translation {self.english_translation} and is in HSK Level {self.hsk_level} is in the category with id {self.category_id}>'
+
+
+class Category(db.Model, SerializerMixin):
     __tablename__ = 'categories'
 
     id = db.Column(db.Integer, primary_key = True)
-    name = db.Column (db.String, nullable = False)
-    description = db.Column (db.String, nullable = True)
+    name = db.Column(db.String, nullable = False) 
 
-    card_categories = db.relationship("CardCategory", back_populates = "category")
+    cards = db.relationship('Card', back_populates='category', cascade = 'all, delete-orphan')
 
-    serialize_rules = ("-card_categories.category",)
+    serialize_rules = ("-cards.category",)
 
     def __repr__(self):
-        return f'<Category with id {self.id} is called {self.name} and has the description {self.description}>'
+        return f'Category with id {self.id} is called {self.name}'       
 
-class CardCategory(db.Model, SerializerMixin):
-    __tablename__="card_categories"
+class ProficiencyLevel(db.Model):
+    __tablename__ = 'proficiencylevels'
 
     id = db.Column(db.Integer, primary_key = True)
-    user_notes = db.Column(db.String, nullable = True)
+    name = db.Column(db.String, nullable = False)
+    description = db.Column(db.String, nullable = False)
 
-    card_id = db.Column(db.Integer, db.ForeignKey('cards.id', ondelete = 'CASCADE'), nullable = False)
-    category_id = db.Column(db.Integer, db.ForeignKey('categories.id', ondelete = 'CASCADE'), nullable = False)
+    learner_id = db.Column(db.Integer, db.ForeignKey('learners.id', ondelete = "CASCADE"), nullable = False)
+    card_id = db.Column(db.Integer, db.ForeignKey("cards.id", ondelete = "CASCADE"), nullable=False)
 
+    learner = db.relationship('Learner', back_populates='proficiencylevels')
+    card = db.relationship('Card', back_populates = 'proficiencylevels')
 
-    card = db.relationship("Card", back_populates = "card_categories")
-    category = db.relationship("Category", back_populates = "card_categories")
+    serialize_rules = ("-learner.proficiencylevels", "-card.proficiencylevels")
 
-    serialize_rules = ("-card.card_categories", "-category.card_categories")
 
     def __repr__(self):
-        return f'<Card category{self.user_notes}>'
-
+        return f'<Proficiency Level with name {self.name} and description {self.description}:Learner {self.learner_id}, Card {self.card_id}>'
 
