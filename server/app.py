@@ -96,6 +96,57 @@ class CardById(Resource):
 
         return make_response(jsonify(response_body), response_status)
 
+    def patch(self,id):
+        card = Card.query.get(id)
+
+        if not card:
+            return {"error":f"Card with id {id} not found."},404    
+        
+        else:
+            data = request.get_json()    
+
+            if "hanzi" in data:
+                card.hanzi = data["hanzi"]
+
+            if "pinyin" in data:
+                card.pinyin = data["pinyin"]
+
+            if "english_translation" in data:
+                card.english_translation = data["english_translation"]
+
+            if "level_id" in data:
+                level = Level.query.get(data["level_id"])
+                if not level:
+                    return {"error":f"Level with ID {data['level_id']} not found."}, 404
+                card.level_id = data["level_id"]
+
+        db.session.commit()    
+
+        response_body = {
+            "id" : card.id,
+            "hanzi" : card.hanzi,
+            "pinyin" : card.pinyin,
+            "english_translation" : card.english_translation,
+            "level_id" : card.level_id 
+        }
+        return make_response(jsonify(response_body), 200)
+
+    def delete(self,id):
+        card = Card.query.get(id)
+
+        if card:
+            db.session.delete(card)
+            db.session.commit()
+
+            response_body = {"message":f"Card with ID {id} has been deleted successfully."}
+            response_status = 200
+
+        else:
+            response_body = {"error":f"Card with ID {id} not found."}
+            response_status = 404
+
+        return make_response(jsonify(response_body), response_status)        
+
 api.add_resource(CardById, '/card/<int:id>')        
 
 
@@ -107,8 +158,8 @@ if __name__ == '__main__':
 # GET ALL Cards /cards DONE
 # POST Card /cards DONE
 # GET Card by id /card/id DONE
-# PATCH Card card/id
-# DELETE Card card/id
+# PATCH Card card/id DONE
+# DELETE Card card/id DONE
 
 # GET all Users /users
 # POST User /users
