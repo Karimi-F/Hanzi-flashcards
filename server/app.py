@@ -51,8 +51,8 @@ class CardList(Resource):
         hsk_level = data.get("hsk_level")
         category_id = data.get("category_id")
 
-        if not hanzi or not pinyin or not english_translation or hsk_level or category_id is None:
-            return {"error": "Missing required fields: hanzi, pinyin, english_translation or level_id."},400
+        if not hanzi or not pinyin or not english_translation or hsk_level is None or category_id is None:
+            return {"error": "Missing required fields: hanzi, pinyin, English Translation, hsk Level or category id."},400
         
         category = Category.query.get(category_id)
         if not category:
@@ -79,215 +79,396 @@ class CardList(Resource):
     
 api.add_resource(CardList, '/cards', methods = ['GET', 'POST'])
 
-# class CardById(Resource):
-#     def get(self, id):
-#         card = Card.query.get(id)
+class CardById(Resource):
+    def get(self, id):
+        card = Card.query.get(id)
 
-#         if card:
-#             response_body = {
-#                 "id": card.id,
-#                 "hanzi":card.hanzi,
-#                 "pinyin":card.pinyin,
-#                 "english_translation":card.english_translation,
-#                 "level_id":card.level.id
-#             }
-#             response_status = 200
+        if card:
+            response_body = {
+                "id": card.id,
+                "hanzi":card.hanzi,
+                "pinyin":card.pinyin,
+                "english_translation":card.english_translation,
+                "hsk_level":card.hsk_level,
+                "category_id":card.category.id
+            }
+            response_status = 200
 
-#         else:
-#             response_body = {"error":f"Card with ID {id} not found."}
-#             response_status = 404
+        else:
+            response_body = {"error":f"Card with ID {id} not found."}
+            response_status = 404
 
-#         return make_response(jsonify(response_body), response_status)
+        return make_response(jsonify(response_body), response_status)
 
-#     def patch(self,id):
-#         card = Card.query.get(id)
+    def patch(self,id):
+        card = Card.query.get(id)
 
-#         if not card:
-#             return {"error":f"Card with id {id} not found."},404    
+        if not card:
+            return {"error":f"Card with id {id} not found."},404    
         
-#         else:
-#             data = request.get_json()    
+        else:
+            data = request.get_json()    
 
-#             if "hanzi" in data:
-#                 card.hanzi = data["hanzi"]
+            if "hanzi" in data:
+                card.hanzi = data["hanzi"]
 
-#             if "pinyin" in data:
-#                 card.pinyin = data["pinyin"]
+            if "pinyin" in data:
+                card.pinyin = data["pinyin"]
 
-#             if "english_translation" in data:
-#                 card.english_translation = data["english_translation"]
+            if "english_translation" in data:
+                card.english_translation = data["english_translation"]
 
-#             if "level_id" in data:
-#                 level = Level.query.get(data["level_id"])
-#                 if not level:
-#                     return {"error":f"Level with ID {data['level_id']} not found."}, 404
-#                 card.level_id = data["level_id"]
+            if "hsk_level" in data:
+                card.hsk_level = data["hsk_level"]    
 
-#         db.session.commit()    
+            if "category_id" in data:
+                category = Category.query.get(data["category_id"])
+                if not category:
+                    return {"error":f"Category with ID {data['category_id']} not found."}, 404
+                card.category_id = data["category_id"]
 
-#         response_body = {
-#             "id" : card.id,
-#             "hanzi" : card.hanzi,
-#             "pinyin" : card.pinyin,
-#             "english_translation" : card.english_translation,
-#             "level_id" : card.level_id 
-#         }
-#         return make_response(jsonify(response_body), 200)
+        db.session.commit()    
 
-#     def delete(self,id):
-#         card = Card.query.get(id)
+        response_body = {
+            "id" : card.id,
+            "hanzi" : card.hanzi,
+            "pinyin" : card.pinyin,
+            "english_translation" : card.english_translation,
+            "hsk_level":card.hsk_level,
+            "category_id" : card.category_id 
+        }
+        return make_response(jsonify(response_body), 200)
 
-#         if card:
-#             db.session.delete(card)
-#             db.session.commit()
+    def delete(self,id):
+        card = Card.query.get(id)
 
-#             response_body = {"message":f"Card with ID {id} has been deleted successfully."}
-#             response_status = 200
+        if card:
+            db.session.delete(card)
+            db.session.commit()
 
-#         else:
-#             response_body = {"error":f"Card with ID {id} not found."}
-#             response_status = 404
+            response_body = {"message":f"Card with ID {id} has been deleted successfully."}
+            response_status = 200
 
-#         return make_response(jsonify(response_body), response_status)        
+        else:
+            response_body = {"error":f"Card with ID {id} not found."}
+            response_status = 404
 
-# api.add_resource(CardById, '/card/<int:id>')        
+        return make_response(jsonify(response_body), response_status)        
+
+api.add_resource(CardById, '/card/<int:id>')        
 
 
-# class UserList(Resource):
-#     def get(self):
-#         users = User.query.all()
-#         user_list = [
-#             {
-#                 "id": user.id,
-#                 "name": user.name,
-#                 "nickname": user.nickname
-#             } 
-#             for user in users
-#         ]
-#         if users:
-#             response_body = user_list
-#             response_status = 200
-#         else:
-#             response_body = {"error": "Users not found"} 
-#             response_status = 404
-#         response =  make_response(jsonify(response_body),response_status)
-#         return response
+class LearnerList(Resource):
+    def get(self):
+        learners = Learner.query.all()
+        learner_list = [
+            {
+                "id": learner.id,
+                "name": learner.name,
+                "nickname": learner.nickname,
+                "country_id":learner.country_id
+            } 
+            for learner in learners
+        ]
+        if learners:
+            response_body = learner_list
+            response_status = 200
+        else:
+            response_body = {"error": "Learners not found"} 
+            response_status = 404
+        response =  make_response(jsonify(response_body),response_status)
+        return response
     
-#     def post(self):
-#         data = request.get_json()
-#         name = data.get("name")
-#         nickname = data.get("nickname")
+    def post(self):
+        data = request.get_json()
+        name = data.get("name")
+        nickname = data.get("nickname")
+        country_id = data.get("country_id")
 
-#         if name is None or nickname is None:
-#             return {"error":"Missing required fields. Either name or nickname."},404
+        if name is None or nickname is None or country_id is None:
+            return {"error":"Missing required fields. Either name, nickname or country id."},404
         
-#         else:
-#             new_user = User(
-#                 name = name,
-#                 nickname = nickname
-#             )
-#             db.session.add(new_user)
-#             db.session.commit()
+        else:
+            new_learner = Learner(
+                name = name,
+                nickname = nickname,
+                country_id = country_id
+            )
+            db.session.add(new_learner)
+            db.session.commit()
 
-#             response_body = {
-#                 "id" : new_user.id,
-#                 "name" : new_user.name,
-#                 "nickname" : new_user.nickname
-#             }
-#             response_status = 201
-#             response = make_response(jsonify(response_body),response_status)
+            response_body = {
+                "id" : new_learner.id,
+                "name" : new_learner.name,
+                "nickname" : new_learner.nickname,
+                "country_id" : new_learner.country_id
+            }
+            response_status = 201
+            response = make_response(jsonify(response_body),response_status)
 
-#             return response
+            return response
    
-# api.add_resource(UserList, '/users')    
+api.add_resource(LearnerList, '/learners')    
 
-# class UserByID(Resource):
-#     def get(self, id):
-#         user = User.query.get(id)
+class LearnerByID(Resource):
+    def get(self, id):
+        learner = Learner.query.get(id)
 
-#         if user:
-#             response_body = {
-#                 "id": user.id,
-#                 "name":user.name,
-#                 "nickname":user.nickname
-#             }
-#             response_status = 200
+        if learner:
+            response_body = {
+                "id": learner.id,
+                "name":learner.name,
+                "nickname":learner.nickname,
+                "country_id":learner.country_id
+            }
+            response_status = 200
 
-#         else:
-#             response_body = {"error" : f"User with ID {id} not found."}
-#             response_status = 404
+        else:
+            response_body = {"error" : f"Learner with ID {id} not found."}
+            response_status = 404
 
-#         return make_response(jsonify(response_body), response_status)    
+        return make_response(jsonify(response_body), response_status)    
 
-# api.add_resource(UserByID, '/user/<int:id>')
+api.add_resource(LearnerByID, '/learner/<int:id>')
 
 
-# class LevelList(Resource):
-#     def get(self):
-#         levels = Level.query.all()
-#         level_list = [
-#             {"id":level.id,
-#             "name":level.name,
-#             "description": level.description,
-#             "user_id":level.user_id
-#             } for level in levels
-#         ]
-#         if levels:
-#             response_body = level_list
-#             response_status = 200
-#         else:
-#             response_body = {"error":"Levels not found"}
-#             response_status = 404
-#         response = make_response(jsonify(response_body),response_status)
-#         return response        
+class CategoryList(Resource):
+    def get(self):
+        categories = Category.query.all()
+        category_list = [
+            {"id":category.id,
+            "name":category.name,
+            } for category in categories
+        ]
+        if categories:
+            response_body = category_list
+            response_status = 200
+        else:
+            response_body = {"error":"Categories not found"}
+            response_status = 404
+        response = make_response(jsonify(response_body),response_status)
+        return response        
         
-#     def post(self):
-#         data = request.get_json()
-#         name = data.get("name")
-#         description = data.get("description")
-#         user_id = data.get("user_id")
+    def post(self):
+        data = request.get_json()
+        name = data.get("name")
 
-#         if name is None or description is None or user_id is None:
-#             return {"error":"Missing required fields. Either name, description or user_id."},404
+        if name is None:
+            return {"error":"Missing name which is a required fields."},404
         
-#         else:
-#             new_level = Level(
-#                 name = name,
-#                 description = description,
-#                 user_id = user_id
-#             )
-#             db.session.add(new_level)
-#             db.session.commit()
+        else:
+            new_category = Category(
+                name = name
+            )
+            db.session.add(new_category)
+            db.session.commit()
 
-#             response_body = {
-#                 "id" :new_level.id,
-#                 "name":new_level.name,
-#                 "description":new_level.description,
-#                 "user_id":new_level.user_id
-#             }
-#             response_status = 201
-#             response = make_response(jsonify(response_body), response_status)
-#             return response
+            response_body = {
+                "id" :new_category.id,
+                "name":new_category.name
+            }
+            response_status = 201
+            response = make_response(jsonify(response_body), response_status)
+            return response
 
-# api.add_resource(LevelList, '/levels')        
+api.add_resource(CategoryList, '/categories')        
+
+
+class CountryList(Resource):
+    def get(self):
+        countries = Country.query.all()
+        country_list = [
+            {"id":country.id,
+            "name":country.name,
+            } for country in countries
+        ]
+        if countries:
+            response_body = country_list
+            response_status = 200
+        else:
+            response_body = {"error":"Countries not found"}
+            response_status = 404
+        response = make_response(jsonify(response_body),response_status)
+        return response        
+        
+    def post(self):
+        data = request.get_json()
+        name = data.get("name")
+
+        if name is None:
+            return {"error":"Missing name which is a required fields."},404
+        
+        else:
+            new_country = Country(
+                name = name
+            )
+            db.session.add(new_country)
+            db.session.commit()
+
+            response_body = {
+                "id" :new_country.id,
+                "name":new_country.name
+            }
+            response_status = 201
+            response = make_response(jsonify(response_body), response_status)
+            return response
+
+api.add_resource(CountryList, '/countries')     
+
+class ProficiencyLevelList(Resource):
+    def get(self):
+        proficiency_levels = ProficiencyLevel.query.all()
+        return [level.to_dict() for level in proficiency_levels], 200
+
+    def post (self):
+        data = request.get_json()
+        name = data.get("name")
+        description = data.get("description")
+        learner_id = data.get("learner_id")
+        card_id = data.get("card_id")
+
+        learner = Learner.query.get(learner_id)
+        card = Card.query.get(card_id)
+
+        if not learner or not card:
+            return{"error":"Learne or Card not found"}, 404
+        
+        new_level = ProficiencyLevel(
+            name=name,
+            description=description,
+            learner_id=learner_id,
+            card_id=card_id,
+        )
+
+        db.session.add(new_level)
+        db.session.commit()
+
+        return new_level.to_dict(),201
+
+api.add_resource(ProficiencyLevelList, '/proficiencylevels')   
+
+class ProficiencyLevelById(Resource):
+    def get(self, id):
+        proficiency_level = ProficiencyLevel.query.get(id)
+        if not proficiency_level:
+            return {'error':'Proficiency level not found'},404
+        return proficiency_level.to_dict(), 200
+    
+    def patch (self, id):
+        proficiency_level = ProficiencyLevel.query.get(id)
+        if not proficiency_level:
+            return{'error':'Proficiency level not found'}, 404
+
+        data = request.get_json()
+        if "name" in data:
+            proficiency_level.name = data['name']   
+
+        if "description" in data:
+            proficiency_level.description= data["description"]
+
+        if "learner_id" in data:
+            learner = Learner.query.get(data['learner_id']) 
+            if not learner:
+                return{"error":"Learner not found"}, 404
+            proficiency_level.learner_id = data["learner_id"]
+
+        if "card_id" in data:
+            card = Card.query.get(data["card_id"])
+            if not card:
+                return{"error":"Card not found"}, 404
+            proficiency_level.card_id = data["card_id"] 
+
+        db.session.commit()
+        return proficiency_level.to_dict(), 200   
+
+    def delete(self, id):
+        proficiency_level = ProficiencyLevel.query.get(id)
+        if not proficiency_level:
+            return {"error":"Proficiency level not found"}, 404
+
+        db.session.delete(proficiency_level)
+        db.session.commit()          
+        return{"message":"Proficiency level has been deleted successfully"}, 200
+    
+api.add_resource(ProficiencyLevelById, '/proficiencylevel/<int:id>')    
+
+class LearnerCards(Resource):
+    def get(self, learner_id):
+        learner = Learner.query.get(learner_id)
+        if not learner:
+            return{"error":"Learner not found"}, 404
+        
+        cards = [card.to_dict() for card in learner.cards]
+
+        return {"learner_id":learner.id, "name":learner.name, "cards":cards}, 200
+    
+api.add_resource(LearnerCards, '/learners/<int:learner_id>/cards')    
+    
+class CardLearners(Resource):
+    def get(self, card_id):
+        card = Card.query.get(card_id)
+        if not card:
+            return {"error":"Card not found"}, 404
+
+        learners = [learner.to_dict() for learner in card.proficiencylevels]
+
+        return {"card_id":card.id, "hanzi":card.hanzi, "learners":learners}, 200
+       
+api.add_resource(CardLearners, '/cards/<int:card_id>/learners')
+
+class CategoryCards(Resource):
+    def get(self, category_id):
+        category=Category.query.get(category_id)
+        if not category:
+            return {"error":"Category not found"}, 404
+        
+        cards = [card.to_dict() for card in category.cards]
+
+        return {"category_id":category.id, "cards":cards}, 200
+    
+api.add_resource(CategoryCards, "/category/<int:category_id>/cards")    
+
+class CountryLearnersCards(Resource):
+    def get(self, country_id):
+        country = Country.query.get(country_id)
+        if not country:
+            return{"error":"Country not found"}, 404
+        
+        learners = Learner.query.filter_by(country_id=country_id).all()
+
+        all_cards = []
+        for learner in learners:
+            for proficiency_level in learner.proficiencylevels:
+                all_cards.append(proficiency_level.card.to_dict())
+
+        return {"country_id":country.id, "country_name": country.name, "cards":all_cards}, 200
+            
+api.add_resource(CountryLearnersCards, '/country/<int:country_id>/cards')            
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
 
-# # GET ALL Cards /cards DONE
-# # POST Card /cards DONE
-# # GET Card by id /card/id DONE
-# # PATCH Card card/id DONE
-# # DELETE Card card/id DONE
+# GET ALL Cards /cards DONE
+# POST Card /cards DONE
+# GET Card by id /card/id DONE
+# PATCH Card card/id DONE
+# DELETE Card card/id DONE
 
-# # GET all Users /users DONE
-# # POST User /users DONE
-# # GET User by id /user/id DONE
+# GET all Learners /users DONE
+# POST Learner /learners DONE
+# GET Learner by id /learner/id DONE
 
-# # GET all Levels /levels DONE
-# # POST Level /levels DONE
-# # GET Level by id /level/id
+# GET all Categories /categories DONE
+# POST Category /categories DONE
+# # GET Category by id /level/id
 
-# # GET all Categories /categories
-# # POST Category /categories
-# # GET Category by id /categories/id
+# GET all Countries /countries
+# # POST Country /countries
+# # GET Country by id /countries/id
+
+# GET all ProficiencyLevels /proficiencylevels DONE
+# POST ProficiencyLevel /proficiencyLevels DONE
+# GET ProficiencyLevel by id /proficiencylevel/id DONE
+# PATCH ProficiencyLevel by id /proficiencylevel/id DONE
+# DELETE ProficiencyLevel by id /proficiencylevel/id DONE
+  

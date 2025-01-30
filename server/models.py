@@ -38,7 +38,7 @@ class Learner(db.Model, SerializerMixin):
         return f'<Learner {self.id}, {self.name}, {self.nickname} from country with id {self.country_id}>'
     
 
-class Card(db.Model):
+class Card(db.Model, SerializerMixin):
     __tablename__ = 'cards'
 
     id = db.Column(db.Integer, primary_key = True)
@@ -71,7 +71,7 @@ class Category(db.Model, SerializerMixin):
     def __repr__(self):
         return f'Category with id {self.id} is called {self.name}'       
 
-class ProficiencyLevel(db.Model):
+class ProficiencyLevel(db.Model, SerializerMixin):
     __tablename__ = 'proficiencylevels'
 
     id = db.Column(db.Integer, primary_key = True)
