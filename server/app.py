@@ -390,7 +390,20 @@ class ProficiencyLevelById(Resource):
         db.session.commit()          
         return{"message":"Proficiency level has been deleted successfully"}, 200
     
-api.add_resource(ProficiencyLevelById, '/proficiencylevel/<int:id>')    
+api.add_resource(ProficiencyLevelById, '/proficiencylevel/<int:id>')  
+
+class CountryLearners(Resource):
+    def get(self, country_id):
+        country = Country.query.get(country_id)
+        if not country:
+            return {"error":"Country not found"}, 404
+        
+        learners = [learner.to_dict() for learner in country.learners]
+
+        return {"country_id" : country.id, "country_name" : country.name, "learners": learners}, 200
+    
+api.add_resource(CountryLearners, '/country/<int:country_id>/learners') 
+         
 
 class LearnerCards(Resource):
     def get(self, learner_id):
