@@ -1,0 +1,38 @@
+.view-cards {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    gap: 50px;
+  }
+  
+  h2 {
+    font-size: 1.8rem;
+    color: #333;
+    text-align: center;
+  }
+  
+  .filter-level-container {
+    margin-bottom: 20px;
+    font-size: 20px;
+  }
+  
+  #error-message {
+    color: red;
+    font-weight: bold;
+  }
+  
+  .card-list {
+    margin-top: 20px;
+    margin: 50px;
+  }
+  
+  .card-list p {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #555;
+  }
+  
+  select {
+    padding: 8px;
+    font-size: 1rem;
+  }
+  

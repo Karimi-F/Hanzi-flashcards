@@ -181,11 +181,14 @@ class LearnerList(Resource):
     
     def post(self):
         data = request.get_json()
+
+        print("Received Data:", data)
         name = data.get("name")
         nickname = data.get("nickname")
         country_id = data.get("country_id")
 
         if name is None or nickname is None or country_id is None:
+            print ("Girl no fields filled here!")
             return {"error":"Missing required fields. Either name, nickname or country id."},404
         
         else:
@@ -203,6 +206,7 @@ class LearnerList(Resource):
                 "nickname" : new_learner.nickname,
                 "country_id" : new_learner.country_id
             }
+            print("Yay new learner created")
             response_status = 201
             response = make_response(jsonify(response_body),response_status)
 
@@ -394,6 +398,7 @@ api.add_resource(ProficiencyLevelById, '/proficiencylevel/<int:id>')
 
 class CountryLearners(Resource):
     def get(self, country_id):
+        # country = Country.query.get(country_id)
         country = Country.query.get(country_id)
         if not country:
             return {"error":"Country not found"}, 404
@@ -457,6 +462,15 @@ class CountryLearnersCards(Resource):
         return {"country_id":country.id, "country_name": country.name, "cards":all_cards}, 200
             
 api.add_resource(CountryLearnersCards, '/country/<int:country_id>/cards')            
+
+class CardsByCategory(Resource):
+    def get(self, category_id):
+        cards = Card.query.filter_by(category_id=category_id).all()
+        if not cards:
+            return{"message":"No cards found for this category"}, 404
+        return jsonify([card.to_dict()for card in cards])
+    
+api.add_resource(CardsByCategory, '/category/<int:category_id>/cards')    
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
