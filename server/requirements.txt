@@ -5,3 +5,5 @@ Flask-Migrate
 python-dotenv
 Flask-Cors
 Flask-RESTful
+sqlalchemy-serializer
+
