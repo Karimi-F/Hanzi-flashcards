@@ -14,10 +14,10 @@ const[message,setMessage] = React.useState("");
 const levels = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 const categories = [
     { id: 1, name: "Greetings" },
-    { id: 2, name: "Colors" },
-    { id: 3, name: "Common Phrases" },
-    { id: 4, name: "Numbers" },
-    { id: 5, name: "Directions" },
+    { id: 2, name: "Directions" },
+    { id: 3, name: "Numbers" },
+    { id: 4, name: "Colors" },
+    { id: 5, name: "Common Phrases" },
     // Add more categories as needed
   ];
 

@@ -29,6 +29,7 @@ function LandingPage(){
         <ul>Kenya - 3</ul>
         <ul>Madagascar - 4</ul>
         <ul>Botswana - 5</ul>
+        <ul>Korea - 6</ul>
       <div className='button-container'>
         <button onClick={handleSignUpClick} className='button button-signup'>SignUp</button>
         <button onClick={handleLoginClick} className='button button-login'>Login</button>

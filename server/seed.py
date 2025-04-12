@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
         print("Seeding countries...")
         countries= []
-        country_names = ["China","Japan","Korea","Kenya"]
+        country_names = ["China","Japan","Kenya","Madagascar","Botswana","Korea",]
         for name in country_names:
             country = Country(name=name)
             countries.append(country)
